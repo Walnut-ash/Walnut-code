@@ -44,6 +44,7 @@ train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=
 test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
 val_loader = DataLoader(dataset=val_dataset, batch_size=batch_size, shuffle=False)
 
+
 # 定义模型
 class CNN(nn.Module):
     def __init__(self):
@@ -62,6 +63,7 @@ class CNN(nn.Module):
         x = nn.functional.relu(self.fc1(x))
         x = self.softmax(self.fc2(x))
         return x
+
 
 # 实例化模型、定义损失函数和优化器
 model = CNN()
@@ -83,6 +85,21 @@ for epoch in range(num_epochs):
             print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'.format(epoch+1, num_epochs, i+1, len(train_loader), running_loss / 100))
             running_loss = 0.0
 
+
+    # 验证模型
+    model.eval()
+    with torch.no_grad():
+        correct = 0
+        total = 0
+        for images, labels in val_loader:
+            outputs = model(images)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+        print('验证集准确率: {:.2f}%'.format(100 * correct / total))
+
+
 # 测试模型
 model.eval()
 with torch.no_grad():
@@ -95,16 +112,3 @@ with torch.no_grad():
         correct += (predicted == labels).sum().item()
 
     print('测试集准确率: {:.2f}%'.format(100 * correct / total))
-
-# 验证模型
-model.eval()
-with torch.no_grad():
-    correct = 0
-    total = 0
-    for images, labels in val_loader:
-        outputs = model(images)
-        _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
-
-    print('验证集准确率: {:.2f}%'.format(100 * correct / total))
